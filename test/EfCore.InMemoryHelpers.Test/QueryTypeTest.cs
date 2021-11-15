@@ -48,8 +48,18 @@ namespace EfCore.InMemoryHelpers.Test
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                 modelBuilder
-                    .Query<TestEntityCount>().ToView("View_BlogPostCounts")
-                    .Property(v => v.Property).HasColumnName("Property");
+                    .Entity<TestEntityCount>()
+                    .ToView("View_BlogPostCounts");
+
+                modelBuilder
+                    .Entity<TestEntityCount>()
+                    .Property(v => v.Property)
+                    .HasColumnName("Property");
+
+                modelBuilder
+                    .Entity<TestEntityCount>()
+                    .HasNoKey();
+
                 var entity = modelBuilder.Entity<TestEntity>();
                 entity.Property(b => b.Property)
                     .IsRequired();

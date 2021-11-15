@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 
@@ -23,6 +23,11 @@ namespace EfCore.InMemoryHelpers
         {
             inner = stateManager;
             concurrencyValidator = new ConcurrencyValidator();
+        }
+
+        public IList<IUpdateEntry> GetEntriesToSave(bool cascadeChanges)
+        {
+            return inner.GetEntriesToSave(cascadeChanges);
         }
 
         public int SaveChanges(bool acceptAllChangesOnSuccess)
@@ -44,6 +49,11 @@ namespace EfCore.InMemoryHelpers
             inner.ResetState();
         }
 
+        public Task ResetStateAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            return inner.ResetStateAsync(cancellationToken);
+        }
+
         public InternalEntityEntry GetOrCreateEntry(object entity)
         {
             return inner.GetOrCreateEntry(entity);
@@ -59,24 +69,20 @@ namespace EfCore.InMemoryHelpers
             return inner.CreateEntry(values, entityType);
         }
 
-        public InternalEntityEntry StartTrackingFromQuery(IEntityType baseEntityType, object entity, in ValueBuffer valueBuffer, ISet<IForeignKey> handledForeignKeys)
+        public InternalEntityEntry StartTrackingFromQuery(IEntityType baseEntityType, object entity, in ValueBuffer valueBuffer)
         {
-            return inner.StartTrackingFromQuery(baseEntityType, entity, in valueBuffer, handledForeignKeys);
+            return inner.StartTrackingFromQuery(baseEntityType, entity, in valueBuffer);
         }
 
-        public void BeginTrackingQuery()
-        {
-            inner.BeginTrackingQuery();
-        }
 
         public InternalEntityEntry TryGetEntry(IKey key, object[] keyValues)
         {
             return inner.TryGetEntry(key, keyValues);
         }
 
-        public InternalEntityEntry TryGetEntry(IKey key, in ValueBuffer valueBuffer, bool throwOnNullKey)
+        public InternalEntityEntry? TryGetEntry(IKey key, object?[] keyValues, bool throwOnNullKey, out bool hasNullKey)
         {
-            return inner.TryGetEntry(key, valueBuffer, throwOnNullKey);
+            return inner.TryGetEntry(key, keyValues, throwOnNullKey, out hasNullKey);
         }
 
         public InternalEntityEntry TryGetEntry(object entity, bool throwOnNonUniqueness = true)
@@ -84,9 +90,29 @@ namespace EfCore.InMemoryHelpers
             return inner.TryGetEntry(entity, throwOnNonUniqueness);
         }
 
-        public InternalEntityEntry TryGetEntry(object entity, IEntityType type)
+        public InternalEntityEntry? TryGetEntry(object entity, IEntityType type, bool throwOnTypeMismatch = true)
         {
-            return inner.TryGetEntry(entity, type);
+            return inner.TryGetEntry(entity, type, throwOnTypeMismatch);
+        }
+
+        public IEnumerable<InternalEntityEntry> GetEntriesForState(bool added = false, bool modified = false, bool deleted = false, bool unchanged = false, bool returnSharedIdentity = false)
+        {
+            return inner.GetEntriesForState(added, modified, deleted, unchanged, returnSharedIdentity);
+        }
+
+        public int GetCountForState(bool added = false, bool modified = false, bool deleted = false, bool unchanged = false, bool returnSharedIdentity = false)
+        {
+            return inner.GetCountForState(added, modified, deleted, unchanged, returnSharedIdentity);
+        }
+
+        public IEnumerable<TEntity> GetNonDeletedEntities<TEntity>() where TEntity : class
+        {
+            return inner.GetNonDeletedEntities<TEntity>();
+        }
+
+        public void StateChanging(InternalEntityEntry entry, EntityState newState)
+        {
+            inner.StateChanging(entry, newState);
         }
 
         public InternalEntityEntry StartTracking(InternalEntityEntry entry)
@@ -94,34 +120,49 @@ namespace EfCore.InMemoryHelpers
             return inner.StartTracking(entry);
         }
 
-        public void StopTracking(InternalEntityEntry entry)
+        public void StopTracking(InternalEntityEntry entry, EntityState oldState)
         {
-            inner.StopTracking(entry);
+            inner.StopTracking(entry, oldState);
         }
 
-        public void RecordReferencedUntrackedEntity(object referencedEntity, INavigation navigation, InternalEntityEntry referencedFromEntry)
+        public void RecordReferencedUntrackedEntity(object referencedEntity, INavigationBase navigation, InternalEntityEntry referencedFromEntry)
         {
             inner.RecordReferencedUntrackedEntity(referencedEntity, navigation, referencedFromEntry);
         }
 
-        public IEnumerable<Tuple<INavigation, InternalEntityEntry>> GetRecordedReferrers(object referencedEntity, bool clear)
+        IEnumerable<Tuple<INavigationBase, InternalEntityEntry>> IStateManager.GetRecordedReferrers(object referencedEntity, bool clear)
         {
             return inner.GetRecordedReferrers(referencedEntity, clear);
         }
 
-        public InternalEntityEntry GetPrincipal(InternalEntityEntry dependentEntry, IForeignKey foreignKey)
+        public void BeginAttachGraph()
         {
-            return inner.GetPrincipal(dependentEntry, foreignKey);
+            inner.BeginAttachGraph();
         }
 
-        public InternalEntityEntry GetPrincipalUsingPreStoreGeneratedValues(InternalEntityEntry dependentEntry, IForeignKey foreignKey)
+        public void CompleteAttachGraph()
         {
-            return inner.GetPrincipalUsingPreStoreGeneratedValues(dependentEntry, foreignKey);
+            inner.CompleteAttachGraph();
         }
 
-        public InternalEntityEntry GetPrincipalUsingRelationshipSnapshot(InternalEntityEntry dependentEntry, IForeignKey foreignKey)
+        public void AbortAttachGraph()
         {
-            return inner.GetPrincipalUsingRelationshipSnapshot(dependentEntry, foreignKey);
+            inner.AbortAttachGraph();
+        }
+
+        public InternalEntityEntry? FindPrincipal(InternalEntityEntry dependentEntry, IForeignKey foreignKey)
+        {
+            return inner.FindPrincipal(dependentEntry, foreignKey);
+        }
+
+        public InternalEntityEntry? FindPrincipalUsingPreStoreGeneratedValues(InternalEntityEntry dependentEntry, IForeignKey foreignKey)
+        {
+            return FindPrincipalUsingPreStoreGeneratedValues(dependentEntry, foreignKey);
+        }
+
+        public InternalEntityEntry? FindPrincipalUsingRelationshipSnapshot(InternalEntityEntry dependentEntry, IForeignKey foreignKey)
+        {
+            return inner.FindPrincipalUsingRelationshipSnapshot(dependentEntry, foreignKey);
         }
 
         public void UpdateIdentityMap(InternalEntityEntry entry, IKey principalKey)
@@ -134,24 +175,19 @@ namespace EfCore.InMemoryHelpers
             inner.UpdateDependentMap(entry, foreignKey);
         }
 
-        public IEnumerable<InternalEntityEntry> GetDependentsFromNavigation(InternalEntityEntry principalEntry, IForeignKey foreignKey)
+        public IEnumerable<IUpdateEntry>? GetDependentsFromNavigation(IUpdateEntry principalEntry, IForeignKey foreignKey)
         {
             return inner.GetDependentsFromNavigation(principalEntry, foreignKey);
         }
 
-        public IEnumerable<InternalEntityEntry> GetDependents(InternalEntityEntry principalEntry, IForeignKey foreignKey)
+        public IEnumerable<IUpdateEntry> GetDependents(IUpdateEntry principalEntry, IForeignKey foreignKey)
         {
             return inner.GetDependents(principalEntry, foreignKey);
         }
 
-        public IEnumerable<InternalEntityEntry> GetDependentsUsingRelationshipSnapshot(InternalEntityEntry principalEntry, IForeignKey foreignKey)
+        public IEnumerable<IUpdateEntry> GetDependentsUsingRelationshipSnapshot(IUpdateEntry principalEntry, IForeignKey foreignKey)
         {
             return inner.GetDependentsUsingRelationshipSnapshot(principalEntry, foreignKey);
-        }
-
-        public IReadOnlyList<IUpdateEntry> GetEntriesToSave()
-        {
-            return inner.GetEntriesToSave();
         }
 
         public void AcceptAllChanges()
@@ -162,16 +198,6 @@ namespace EfCore.InMemoryHelpers
         public IEntityFinder CreateEntityFinder(IEntityType entityType)
         {
             return inner.CreateEntityFinder(entityType);
-        }
-
-        public TrackingQueryMode GetTrackingQueryMode(IEntityType entityType)
-        {
-            return inner.GetTrackingQueryMode(entityType);
-        }
-
-        public void EndSingleQueryMode()
-        {
-            inner.EndSingleQueryMode();
         }
 
         public void Unsubscribe()
@@ -189,7 +215,40 @@ namespace EfCore.InMemoryHelpers
             inner.OnStateChanged(internalEntityEntry, oldState);
         }
 
+        public void CascadeChanges(bool force)
+        {
+            inner.CascadeChanges(force);
+        }
+
+        public void CascadeDelete(InternalEntityEntry entry, bool force, IEnumerable<IForeignKey>? foreignKeys = null)
+        {
+            inner.CascadeDelete(entry, force, foreignKeys);
+        }
+
+        public void Clear()
+        {
+            inner.Clear();
+        }
+
+        public StateManagerDependencies Dependencies => inner.Dependencies;
+
+        public CascadeTiming DeleteOrphansTiming
+        {
+            get => inner.DeleteOrphansTiming;
+            set => inner.DeleteOrphansTiming = value;
+        }
+
+        public CascadeTiming CascadeDeleteTiming
+        {
+            get => inner.CascadeDeleteTiming;
+            set => inner.CascadeDeleteTiming = value;
+        }
+
+        public bool SavingChanges => inner.SavingChanges;
+
         public IEnumerable<InternalEntityEntry> Entries => inner.Entries;
+
+        public int Count => inner.Count;
 
         public int ChangedCount
         {
@@ -200,6 +259,9 @@ namespace EfCore.InMemoryHelpers
         public IInternalEntityEntryNotifier InternalEntityEntryNotifier => inner.InternalEntityEntryNotifier;
         public IValueGenerationManager ValueGenerationManager => inner.ValueGenerationManager;
         public DbContext Context => inner.Context;
+        public IModel Model => inner.Model;
+        IEntityMaterializerSource IStateManager.EntityMaterializerSource => EntityMaterializerSource;
+
         public IEntityMaterializerSource EntityMaterializerSource => inner.EntityMaterializerSource;
         public bool SensitiveLoggingEnabled => inner.SensitiveLoggingEnabled;
         public IDiagnosticsLogger<DbLoggerCategory.Update> UpdateLogger => inner.UpdateLogger;

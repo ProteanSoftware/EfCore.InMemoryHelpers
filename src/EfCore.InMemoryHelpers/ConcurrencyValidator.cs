@@ -28,38 +28,24 @@ namespace EfCore.InMemoryHelpers
         private void Validate(Func<object, byte[]> getter, Action<object, byte[]> setter, List<object> objects)
         {
             byte[] rowVersion;
-            var first = objects.First();
 
-            var version = getter(first);
-            if (seen.Any(x => ReferenceEquals(x, first)))
+            foreach (var first in objects)
             {
-                rowVersion = version;
-                if (rowVersion == null)
+                var version = getter(first);
+                if (seen.Any(x => ReferenceEquals(x, first)))
                 {
-                    throw new Exception("Row version has been incorrectly set to null");
+                    rowVersion = version;
+                    if (rowVersion == null)
+                    {
+                        throw new Exception("Row version has been incorrectly set to null");
+                    }
                 }
-            }
-            //If not seen
-            else
-            {
-                if (version != null)
-                {
-                    throw new Exception("The first save must have a null RowVersion");
-                }
-
-                rowVersion = RowVersion.New();
-                setter(first, rowVersion);
-                seen.Add(first);
-            }
-
-            foreach (var o in objects.Skip(1))
-            {
-                var bytes = getter(o);
-
-                if (bytes != null && bytes.SequenceEqual(rowVersion))
+                //If not seen
+                else
                 {
                     rowVersion = RowVersion.New();
-                    setter(o, rowVersion);
+                    setter(first, rowVersion);
+                    seen.Add(first);
                 }
             }
         }

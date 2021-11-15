@@ -24,6 +24,7 @@ namespace EfCore.InMemoryHelpers.Test
                 };
                 context.Add(entity);
                 context.SaveChanges();
+                context.ChangeTracker.Clear();
                 var update = new TestEntity
                 {
                     Id = entity.Id,
@@ -48,6 +49,7 @@ namespace EfCore.InMemoryHelpers.Test
                 };
                 context.Add(entity);
                 context.SaveChanges();
+                context.ChangeTracker.Clear();
                 var update = new TestEntity
                 {
                     Id = entity.Id,
@@ -112,6 +114,7 @@ namespace EfCore.InMemoryHelpers.Test
                 };
                 context.Add(entity);
                 context.SaveChanges();
+                context.ChangeTracker.Clear();
                 var firstToken = entity.ConcurrencyToken;
                 var update = new TestEntity
                 {
@@ -137,6 +140,7 @@ namespace EfCore.InMemoryHelpers.Test
                 };
                 context.Add(entity);
                 context.SaveChanges();
+                context.ChangeTracker.Clear();
                 var update = new TestEntity
                 {
                     Id = entity.Id,

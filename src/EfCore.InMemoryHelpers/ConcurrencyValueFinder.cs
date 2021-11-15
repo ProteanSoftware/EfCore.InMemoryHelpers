@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
@@ -22,7 +21,8 @@ namespace EfCore.InMemoryHelpers
             setter = (z, y) =>
             {
                 var valueConverter = concurrencyProperty.GetValueConverter();
-                var propertySetter = concurrencyProperty.GetSetter();
+                var propertySetter = new ClrPropertySetterFactory().Create(concurrencyProperty);
+
                 if (valueConverter == null)
                 {
                     propertySetter.SetClrValue(z, y);

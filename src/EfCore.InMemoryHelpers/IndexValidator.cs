@@ -26,6 +26,46 @@ namespace EfCore.InMemoryHelpers
             var dictionary = new Dictionary<long, List<object>>();
             foreach (var entity in entities)
             {
+                var filteredIndex = index.GetAnnotations().SingleOrDefault(x => x.Name == "Relational:Filter");
+                if (filteredIndex?.Value is string filter)
+                {
+                    var parts = filter.Split(' ');
+
+                    var column = parts[0].TrimStart('[').TrimEnd(']');
+
+                    var filterProperty = entity.GetType().GetProperty(column);
+                    var value = (object)parts[2].TrimStart('\'').TrimEnd('\'');
+
+                    var type = filterProperty.PropertyType;
+
+                    if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    {
+                        type = filterProperty.PropertyType.GetGenericArguments().Single();
+                    }
+
+                    if (type.IsEnum)
+                    {
+                        var enumBaseType = type.GetEnumUnderlyingType();
+                        value = Convert.ChangeType(value, enumBaseType);
+                        value = Enum.ToObject(type, value);
+                    }
+
+                    value = Convert.ChangeType(value, type);
+
+                    var entityValue = filterProperty.GetValue(entity);
+                    var check = parts[1];
+
+                    if (check == "=" && !value.Equals(entityValue))
+                    {
+                        continue;
+                    }
+
+                    if (check == "<>" && value.Equals(entityValue))
+                    {
+                        continue;
+                    }
+                }
+
                 var valueLookup = index.GetProperties(entity).ToList();
                 var values = valueLookup.Select(x => x.value).ToList();
                 if (values.Any(x => x == null))
