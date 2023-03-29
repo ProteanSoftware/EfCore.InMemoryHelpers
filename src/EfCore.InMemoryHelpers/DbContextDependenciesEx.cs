@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace EfCore.InMemoryHelpers
 {
@@ -17,6 +18,7 @@ namespace EfCore.InMemoryHelpers
             IDbSetSource setSource,
             IEntityFinderSource entityFinderSource,
             IEntityGraphAttacher entityGraphAttacher,
+            IModel model,
             IAsyncQueryProvider queryProvider,
             IStateManager stateManager,
             IDiagnosticsLogger<DbLoggerCategory.Update> updateLogger,
@@ -28,9 +30,12 @@ namespace EfCore.InMemoryHelpers
                 setSource,
                 entityFinderSource,
                 entityGraphAttacher,
+                model,
                 queryProvider, 
                 new StateManagerWrapper(stateManager), updateLogger, infrastructureLogger);
         }
+
+        public IModel Model => inner.Model;
 
         public IDbSetSource SetSource => inner.SetSource;
 

@@ -24,7 +24,6 @@ namespace EfCore.InMemoryHelpers.Test
                 };
                 context.Add(entity);
                 context.SaveChanges();
-                context.ChangeTracker.Clear();
                 var update = new TestEntity
                 {
                     Id1 = entity.Id1,
@@ -106,7 +105,6 @@ namespace EfCore.InMemoryHelpers.Test
                 };
                 context.Add(entity);
                 context.SaveChanges();
-                context.ChangeTracker.Clear();
                 var firstTimestamp = entity.Timestamp;
                 var update = new TestEntity
                 {
@@ -132,7 +130,6 @@ namespace EfCore.InMemoryHelpers.Test
                 };
                 context.Add(entity);
                 context.SaveChanges();
-                context.ChangeTracker.Clear();
                 var update = new TestEntity
                 {
                     Id1 = entity.Id1,

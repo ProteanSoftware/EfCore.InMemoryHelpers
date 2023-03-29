@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <Optimize>false</Optimize>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="ApprovalTests" Version="5.7.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.31" />
     <PackageReference Include="MarkdownSnippets" Version="9.1.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="ObjectApproval" Version="11.2.1" />

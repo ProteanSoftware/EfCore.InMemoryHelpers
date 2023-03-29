@@ -25,6 +25,11 @@ namespace EfCore.InMemoryHelpers
             concurrencyValidator = new ConcurrencyValidator();
         }
 
+        public IEnumerable<InternalEntityEntry> GetDependentsUsingRelationshipSnapshot(InternalEntityEntry principalEntry, IForeignKey foreignKey)
+        {
+            return inner.GetDependentsUsingRelationshipSnapshot(principalEntry, foreignKey);
+        }
+
         public IList<IUpdateEntry> GetEntriesToSave(bool cascadeChanges)
         {
             return inner.GetEntriesToSave(cascadeChanges);
@@ -95,14 +100,14 @@ namespace EfCore.InMemoryHelpers
             return inner.TryGetEntry(entity, type, throwOnTypeMismatch);
         }
 
-        public IEnumerable<InternalEntityEntry> GetEntriesForState(bool added = false, bool modified = false, bool deleted = false, bool unchanged = false, bool returnSharedIdentity = false)
+        public IEnumerable<InternalEntityEntry> GetEntriesForState(bool added = false, bool modified = false, bool deleted = false, bool unchanged = false)
         {
-            return inner.GetEntriesForState(added, modified, deleted, unchanged, returnSharedIdentity);
+            return inner.GetEntriesForState(added, modified, deleted, unchanged);
         }
 
-        public int GetCountForState(bool added = false, bool modified = false, bool deleted = false, bool unchanged = false, bool returnSharedIdentity = false)
+        public int GetCountForState(bool added = false, bool modified = false, bool deleted = false, bool unchanged = false)
         {
-            return inner.GetCountForState(added, modified, deleted, unchanged, returnSharedIdentity);
+            return inner.GetCountForState(added, modified, deleted, unchanged);
         }
 
         public IEnumerable<TEntity> GetNonDeletedEntities<TEntity>() where TEntity : class
@@ -125,29 +130,14 @@ namespace EfCore.InMemoryHelpers
             inner.StopTracking(entry, oldState);
         }
 
-        public void RecordReferencedUntrackedEntity(object referencedEntity, INavigationBase navigation, InternalEntityEntry referencedFromEntry)
+        public void RecordReferencedUntrackedEntity(object referencedEntity, INavigation navigation, InternalEntityEntry referencedFromEntry)
         {
             inner.RecordReferencedUntrackedEntity(referencedEntity, navigation, referencedFromEntry);
         }
 
-        IEnumerable<Tuple<INavigationBase, InternalEntityEntry>> IStateManager.GetRecordedReferrers(object referencedEntity, bool clear)
+        public IEnumerable<Tuple<INavigation, InternalEntityEntry>> GetRecordedReferrers(object referencedEntity, bool clear)
         {
             return inner.GetRecordedReferrers(referencedEntity, clear);
-        }
-
-        public void BeginAttachGraph()
-        {
-            inner.BeginAttachGraph();
-        }
-
-        public void CompleteAttachGraph()
-        {
-            inner.CompleteAttachGraph();
-        }
-
-        public void AbortAttachGraph()
-        {
-            inner.AbortAttachGraph();
         }
 
         public InternalEntityEntry? FindPrincipal(InternalEntityEntry dependentEntry, IForeignKey foreignKey)
@@ -175,19 +165,14 @@ namespace EfCore.InMemoryHelpers
             inner.UpdateDependentMap(entry, foreignKey);
         }
 
-        public IEnumerable<IUpdateEntry>? GetDependentsFromNavigation(IUpdateEntry principalEntry, IForeignKey foreignKey)
+        public IEnumerable<InternalEntityEntry> GetDependentsFromNavigation(InternalEntityEntry principalEntry, IForeignKey foreignKey)
         {
             return inner.GetDependentsFromNavigation(principalEntry, foreignKey);
         }
 
-        public IEnumerable<IUpdateEntry> GetDependents(IUpdateEntry principalEntry, IForeignKey foreignKey)
+        public IEnumerable<InternalEntityEntry> GetDependents(InternalEntityEntry principalEntry, IForeignKey foreignKey)
         {
             return inner.GetDependents(principalEntry, foreignKey);
-        }
-
-        public IEnumerable<IUpdateEntry> GetDependentsUsingRelationshipSnapshot(IUpdateEntry principalEntry, IForeignKey foreignKey)
-        {
-            return inner.GetDependentsUsingRelationshipSnapshot(principalEntry, foreignKey);
         }
 
         public void AcceptAllChanges()
@@ -223,11 +208,6 @@ namespace EfCore.InMemoryHelpers
         public void CascadeDelete(InternalEntityEntry entry, bool force, IEnumerable<IForeignKey>? foreignKeys = null)
         {
             inner.CascadeDelete(entry, force, foreignKeys);
-        }
-
-        public void Clear()
-        {
-            inner.Clear();
         }
 
         public StateManagerDependencies Dependencies => inner.Dependencies;
