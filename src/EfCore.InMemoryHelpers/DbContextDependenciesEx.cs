@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EfCore.InMemoryHelpers
 {
@@ -19,6 +20,7 @@ namespace EfCore.InMemoryHelpers
             IEntityGraphAttacher entityGraphAttacher,
             IAsyncQueryProvider queryProvider,
             IStateManager stateManager,
+            IExceptionDetector exceptionDetector,
             IDiagnosticsLogger<DbLoggerCategory.Update> updateLogger,
             IDiagnosticsLogger<DbLoggerCategory.Infrastructure> infrastructureLogger)
         {
@@ -29,7 +31,10 @@ namespace EfCore.InMemoryHelpers
                 entityFinderSource,
                 entityGraphAttacher,
                 queryProvider, 
-                new StateManagerWrapper(stateManager), updateLogger, infrastructureLogger);
+                new StateManagerWrapper(stateManager),
+                exceptionDetector,
+                updateLogger,
+                infrastructureLogger);
         }
 
         public IDbSetSource SetSource => inner.SetSource;
@@ -43,6 +48,8 @@ namespace EfCore.InMemoryHelpers
         public IChangeDetector ChangeDetector => inner.ChangeDetector;
 
         public IEntityGraphAttacher EntityGraphAttacher => inner.EntityGraphAttacher;
+
+        public IExceptionDetector ExceptionDetector => inner.ExceptionDetector;
 
         public IDiagnosticsLogger<DbLoggerCategory.Update> UpdateLogger => inner.UpdateLogger;
 

@@ -110,9 +110,9 @@ namespace EfCore.InMemoryHelpers
             return inner.GetNonDeletedEntities<TEntity>();
         }
 
-        public void StateChanging(InternalEntityEntry entry, EntityState newState)
+        public void ChangingState(InternalEntityEntry entry, EntityState newState)
         {
-            inner.StateChanging(entry, newState);
+            inner.ChangingState(entry, newState);
         }
 
         public InternalEntityEntry StartTracking(InternalEntityEntry entry)
@@ -128,6 +128,16 @@ namespace EfCore.InMemoryHelpers
         public void RecordReferencedUntrackedEntity(object referencedEntity, INavigationBase navigation, InternalEntityEntry referencedFromEntry)
         {
             inner.RecordReferencedUntrackedEntity(referencedEntity, navigation, referencedFromEntry);
+        }
+
+        public void UpdateReferencedUntrackedEntity(object referencedEntity, object newReferencedEntity, INavigationBase navigation, InternalEntityEntry referencedFromEntry)
+        {
+            inner.UpdateReferencedUntrackedEntity(referencedEntity, newReferencedEntity, navigation, referencedFromEntry);
+        }
+
+        public bool ResolveToExistingEntry(InternalEntityEntry newEntry, INavigationBase navigation, InternalEntityEntry referencedFromEntry)
+        {
+            return inner.ResolveToExistingEntry(newEntry, navigation, referencedFromEntry);
         }
 
         IEnumerable<Tuple<INavigationBase, InternalEntityEntry>> IStateManager.GetRecordedReferrers(object referencedEntity, bool clear)
@@ -205,9 +215,29 @@ namespace EfCore.InMemoryHelpers
             inner.Unsubscribe();
         }
 
+        public (EventHandler<EntityTrackingEventArgs> Tracking, EventHandler<EntityTrackedEventArgs> Tracked, EventHandler<EntityStateChangingEventArgs> StateChanging, EventHandler<EntityStateChangedEventArgs> StateChanged) CaptureEvents()
+        {
+            return CaptureEvents();
+        }
+
+        public void SetEvents(EventHandler<EntityTrackingEventArgs> tracking, EventHandler<EntityTrackedEventArgs> tracked, EventHandler<EntityStateChangingEventArgs> stateChanging, EventHandler<EntityStateChangedEventArgs> stateChanged)
+        {
+            SetEvents(tracking, tracked, stateChanging, stateChanged);
+        }
+
+        public void OnTracking(InternalEntityEntry internalEntityEntry, EntityState state, bool fromQuery)
+        {
+            OnTracking(internalEntityEntry, state, fromQuery);
+        }
+
         public void OnTracked(InternalEntityEntry internalEntityEntry, bool fromQuery)
         {
             inner.OnTracked(internalEntityEntry, fromQuery);
+        }
+
+        public void OnStateChanging(InternalEntityEntry internalEntityEntry, EntityState newState)
+        {
+            inner.OnStateChanging(internalEntityEntry, newState);
         }
 
         public void OnStateChanged(InternalEntityEntry internalEntityEntry, EntityState oldState)
@@ -265,11 +295,18 @@ namespace EfCore.InMemoryHelpers
         public IEntityMaterializerSource EntityMaterializerSource => inner.EntityMaterializerSource;
         public bool SensitiveLoggingEnabled => inner.SensitiveLoggingEnabled;
         public IDiagnosticsLogger<DbLoggerCategory.Update> UpdateLogger => inner.UpdateLogger;
+        public event EventHandler<EntityTrackingEventArgs> Tracking;
 
         public event EventHandler<EntityTrackedEventArgs> Tracked
         {
             add => inner.Tracked += value;
             remove => inner.Tracked -= value;
+        }
+
+        public event EventHandler<EntityStateChangingEventArgs> StateChanging
+        {
+            add => inner.StateChanging += value;
+            remove => inner.StateChanging -= value;
         }
 
         public event EventHandler<EntityStateChangedEventArgs> StateChanged
