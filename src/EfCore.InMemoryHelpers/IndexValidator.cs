@@ -29,7 +29,7 @@ namespace EfCore.InMemoryHelpers
                 var filteredIndex = index.GetAnnotations().SingleOrDefault(x => x.Name == "Relational:Filter");
                 if (filteredIndex?.Value is string filter)
                 {
-                    var parts = filter.Split(' ');
+                    var parts = filter.TrimStart('(').TrimEnd(')').Split(' ');
 
                     var column = parts[0].TrimStart('[').TrimEnd(']');
 
